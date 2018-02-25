@@ -15,6 +15,6 @@ public class East extends RobotState {
 
     @Override
     void rotate() {
-        robot.setRobotState(new South());
+        robot.setRobotState(new South(robot));
     }
 }
