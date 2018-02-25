@@ -5,11 +5,8 @@ import pl.com.bottega.inventory.domain.Inventory;
 import pl.com.bottega.inventory.domain.repositories.InventoryRepository;
 
 import javax.persistence.EntityManager;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import javax.persistence.NoResultException;
+import java.util.*;
 
 @Component
 public class JPAInventoryRepository implements InventoryRepository {
@@ -21,12 +18,15 @@ public class JPAInventoryRepository implements InventoryRepository {
     }
 
     @Override
-    public Inventory get(String skuCode) {
-        Inventory inventory = (Inventory) entityManager.createQuery("SELECT i FROM Inventory i WHERE i.skuCode = :skuCode")
-            .setParameter("skuCode", skuCode)
-            .getSingleResult();
-
-        return inventory;
+    public Optional<Inventory> get(String skuCode) {
+        try {
+            Inventory inventory = (Inventory) entityManager.createQuery("SELECT i FROM Inventory i WHERE i.skuCode = :skuCode")
+                .setParameter("skuCode", skuCode)
+                .getSingleResult();
+            return Optional.of(inventory);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -36,12 +36,12 @@ public class JPAInventoryRepository implements InventoryRepository {
 
     @Override
     public Map<String, Inventory> getAll(Set<String> skus) {
-        List<Inventory> reservationList = entityManager.createQuery("SELECT i FROM Inventory i WHERE i.skuCode IN (:sku_codes)")
+        List<Inventory> products = entityManager.createQuery("SELECT i FROM Inventory i WHERE i.skuCode IN (:sku_codes)")
             .setParameter("sku_codes", skus)
             .getResultList();
 
         Map<String, Inventory> inventoryMap = new HashMap<>();
-        reservationList.stream().forEach(inventory -> inventoryMap.put(inventory.getSkuCode(), inventory));
+        products.stream().forEach(inventory -> inventoryMap.put(inventory.getSkuCode(), inventory));
         return inventoryMap;
     }
 }

@@ -7,27 +7,28 @@ import pl.com.bottega.inventory.domain.commands.AddInventoryCommand;
 import pl.com.bottega.inventory.domain.commands.Validatable;
 import pl.com.bottega.inventory.domain.repositories.InventoryRepository;
 
-import javax.persistence.NoResultException;
+import java.util.Optional;
 
 @Component
 public class AddInventoryHandler implements Handler<AddInventoryCommand, Void> {
 
-    private InventoryRepository invetoryRepository;
+    private InventoryRepository inventoryRepository;
 
-    public AddInventoryHandler(InventoryRepository invetoryRepository) {
-        this.invetoryRepository = invetoryRepository;
+    public AddInventoryHandler(InventoryRepository inventoryRepository) {
+        this.inventoryRepository = inventoryRepository;
     }
 
     @Transactional
     public Void handle(AddInventoryCommand command) {
-        Inventory inventory = null;
-        try {
-            inventory = invetoryRepository.get(command.getSkuCode());
-            inventory.updateAmount(command.getAmount());
-        } catch (NoResultException e) {
-            inventory = new Inventory(command);
+        Optional<Inventory> inventoryOptional = inventoryRepository.get(command.getSkuCode());
+        Inventory inventory;
+        if (inventoryOptional.isPresent()) {
+            inventory = inventoryOptional.get();
+            inventory.increaseAmount(command.getAmount());
+            inventoryRepository.save(inventory);
+        } else {
+            inventoryRepository.save(new Inventory(command));
         }
-        invetoryRepository.save(inventory);
         return null;
     }
 

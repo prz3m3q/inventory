@@ -29,11 +29,7 @@ public class Inventory {
         return amount;
     }
 
-    public void setAmount(Integer amount) {
-        this.amount = amount;
-    }
-
-    public void updateAmount(Integer amount) {
+    public void increaseAmount(Integer amount) {
         this.amount += amount;
     }
 
